@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-json/2.5.1/jquery.json.min.js"></script>
+        
+       
+    </head>
+    <body>
+        <script>
+      //Declarations      
+    var number = null;
+    var url = 'https://raw.githubusercontent.com/onaio/ona-tech/master/data/water_points.json';
+    var count = 0;
+    var waterPoints = [];
+    var brokenPoints = [];
+    var brokenRanks = [];
+    var combined;
+    var broken;
+    //Process Data
+    Calculate("https://raw.githubusercontent.com/onaio/ona-tech/master/data/water_points.json");
+    //Calculate Percentage
+    function getPercent(actual,total){
+        var value = actual/total*100;
+       
+        return  Number(Math.round(value+'e2')+'e-2');
+    }
+    //Sort Array
+    function sortFunction(a, b) {
+    if (a[1] === b[1]) {
+        return 0;
+    }
+    else {
+        return (a[1] < b[1]) ? -1 : 1;
+    }
+}
+    //Get waterpoints from the dataset
+    function findWaterpoints(arr) {
+        var a = [], b = [], prev;
+        arr.sort();
+        for ( var i = 0; i < arr.length; i++ ) {
+            if ( arr[i] !== prev ) {
+                a.push(arr[i]);
+                b.push(1);
+        } else {
+            b[b.length-1]++;
+        }
+        prev = arr[i];
+    }
+    
+    return [a,b];
+}
+function Calculate(url){
+           //load dataset     
+      $.getJSON( url, function(data) {
+          var totalObjects = Object.keys(data).length;
+          for(var i =0;i<totalObjects;i++ ){
+      
+       //functioning water points
+        if(data[i]['water_functioning'] === 'yes'){
+        
+             count++;
+             
+         }else{
+             //broken water points
+             brokenPoints.push(data[i]['communities_villages'])
+         }
+         
+       //All waater points
+             waterPoints.push(data[i]['communities_villages']);
+   
+          }
+       //Output total Funtioning points
+        console.log("***************************************************************************************************************")
+        console.log("Total Functioning water points :"+ count); 
+        console.log("***************************************************************************************************************")
+  
+        combined= findWaterpoints(waterPoints);
+     
+          for(var i=0;i< combined[0].length;i++){
+        //output total waterpoints per community
+            console.log("Communinty "+combined[0][i]+"  has waterpoints  "+combined[1][i]);
+          }
+            console.log("***************************************************************************************************************")
+  
+        for (var g=0;g< combined[0].length;g++){
+          broken =findWaterpoints(brokenPoints);
+         for(var i=0;i< broken[0].length;i++){
+             if(broken[0][i] == combined[0][g]){
+                 var percent = getPercent(broken[1][i],combined[1][g]);
+                 var community = broken[0][i];
+          
+                    brokenRanks.push([community,percent]);
+           
+                }
+          }
+
+        }
+    
+       var rankedArray = brokenRanks.sort(sortFunction);
+       var rk = 0;
+       for(var k= 0; k<rankedArray.length;k++){
+         //rank communities
+            rk++;
+            //Output Community ranks
+         console.log("Rank number "+rk+":Community "+rankedArray[k][0]+" With Broken Water points percentage of "+rankedArray[k][1]+"%");
+       }
+
+
+  
+});
+}
+
+              
+    
+   
+  
+   
+        </script>
+    </body>
+</html>
